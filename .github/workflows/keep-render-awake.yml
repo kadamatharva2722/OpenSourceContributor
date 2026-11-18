@@ -14,7 +14,8 @@ jobs:
     steps:
       - name: Ping Render backend
         run: |
-          curl --location \
+          curl --fail \
+            --location \
             --silent \
             --show-error \
             --output /dev/null \
