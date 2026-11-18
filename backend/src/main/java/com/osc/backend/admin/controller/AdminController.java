@@ -32,11 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controller exposing administrative REST endpoints.
  *
- * <p>Access requires two-factor verification:
- * <ol>
- *   <li>GitHub OAuth2 authentication with numeric ID matching {@code APP_ADMIN_GITHUB_ID}.</li>
- *   <li>Server-side session password verification against BCrypt {@code ADMIN_PASSWORD_HASH}.</li>
- * </ol>
+ * <p>Access requires server-side administrator password verification against BCrypt {@code ADMIN_PASSWORD_HASH}.
  */
 @RestController
 @RequestMapping("/api/v1/admin")

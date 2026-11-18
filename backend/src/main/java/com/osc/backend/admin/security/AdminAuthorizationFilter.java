@@ -10,25 +10,29 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * Centralized Spring Security filter that enforces two-factor authorization on all
- * administrative endpoints ({@code /api/v1/admin/**}).
+ * Centralized Spring Security filter that enforces server-side password session authorization
+ * on all administrative endpoints ({@code /api/v1/admin/**}).
  *
  * <p>Enforcement Rules:
  * <ol>
- *   <li>{@code /api/v1/admin/auth/status} and {@code /api/v1/admin/auth/logout} are permitted to check state or terminate session.</li>
- *   <li>{@code /api/v1/admin/auth/verify-password} requires GitHub authentication with matching {@code APP_ADMIN_GITHUB_ID}.</li>
- *   <li>All other {@code /api/v1/admin/**} data endpoints require both GitHub admin ID match AND
- *       server-side session password verification ({@code SESSION_ATTR_ADMIN_PASSWORD_VERIFIED = true}).</li>
- *   <li>Rejects unverified requests with HTTP 401 or 403 before reaching REST controllers.</li>
+ *   <li>{@code /api/v1/admin/auth/status}, {@code /api/v1/admin/auth/verify-password}, and
+ *       {@code /api/v1/admin/auth/logout} are permitted to check status, verify credentials, or terminate session.</li>
+ *   <li>All other {@code /api/v1/admin/**} data endpoints require server-side session password verification
+ *       ({@code SESSION_ATTR_ADMIN_PASSWORD_VERIFIED = true}).</li>
+ *   <li>Rejects unverified requests with HTTP 401 Unauthorized before reaching REST controllers.</li>
  * </ol>
  */
 public class AdminAuthorizationFilter extends OncePerRequestFilter {
@@ -39,6 +43,10 @@ public class AdminAuthorizationFilter extends OncePerRequestFilter {
     public AdminAuthorizationFilter(ObjectMapper objectMapper, long adminGithubId) {
         this.objectMapper = objectMapper;
         this.adminGithubId = adminGithubId;
+    }
+
+    public AdminAuthorizationFilter(ObjectMapper objectMapper) {
+        this(objectMapper, 0L);
     }
 
     @Override
@@ -54,36 +62,35 @@ public class AdminAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 1. Status and logout endpoints are exempt from data-access authorization
-        if (path.equals("/api/v1/admin/auth/status") || path.equals("/api/v1/admin/auth/logout")) {
+        // 1. Status, verify-password, and logout endpoints are exempt from data-access authorization
+        if (path.equals("/api/v1/admin/auth/status")
+                || path.equals("/api/v1/admin/auth/verify-password")
+                || path.equals("/api/v1/admin/auth/logout")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Extract and verify authenticated principal
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof AppUserPrincipal principal)) {
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Authentication required to access admin panel", path);
-            return;
-        }
-
-        // 3. Verify permanent numeric GitHub ID against configured admin ID
-        if (adminGithubId <= 0 || !Objects.equals(principal.getGithubId(), adminGithubId)) {
-            sendErrorResponse(response, HttpStatus.FORBIDDEN, "Access denied: Administrative privileges required", path);
-            return;
-        }
-
-        // 4. Password verification endpoint requires valid admin GitHub ID (verified above), but not yet password session
-        if (path.equals("/api/v1/admin/auth/verify-password")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // 5. All other administrative data endpoints require complete two-factor session authorization
+        // 2. All other administrative data endpoints require complete password session authorization
         HttpSession session = request.getSession(false);
         if (session == null || !Boolean.TRUE.equals(session.getAttribute(AdminSecurityService.SESSION_ATTR_ADMIN_PASSWORD_VERIFIED))) {
-            sendErrorResponse(response, HttpStatus.FORBIDDEN, "Access denied: Admin password verification required in the current session", path);
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Admin authentication required", path);
             return;
+        }
+
+        // 3. Ensure the SecurityContext has an authenticated admin principal for downstream filters/controllers
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth == null || !existingAuth.isAuthenticated() || !(existingAuth.getPrincipal() instanceof AppUserPrincipal)) {
+            AppUserPrincipal adminPrincipal = new AppUserPrincipal(
+                    null,
+                    adminGithubId > 0 ? adminGithubId : 0L,
+                    "admin",
+                    Collections.emptyMap(),
+                    List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+            );
+            Authentication adminAuth = new UsernamePasswordAuthenticationToken(adminPrincipal, null, adminPrincipal.getAuthorities());
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(adminAuth);
+            SecurityContextHolder.setContext(context);
         }
 
         // All checks passed
@@ -98,8 +105,11 @@ public class AdminAuthorizationFilter extends OncePerRequestFilter {
         if (path == null) {
             return "";
         }
-        path = path.replaceAll("/+", "/");
-        if (path.length() > 1 && path.endsWith("/")) {
+        int queryIndex = path.indexOf('?');
+        if (queryIndex != -1) {
+            path = path.substring(0, queryIndex);
+        }
+        while (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
         return path;
@@ -113,6 +123,7 @@ public class AdminAuthorizationFilter extends OncePerRequestFilter {
     ) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
 
         ErrorResponseDto errorDto = new ErrorResponseDto(
                 OffsetDateTime.now(),
@@ -121,6 +132,7 @@ public class AdminAuthorizationFilter extends OncePerRequestFilter {
                 message,
                 path
         );
+
         objectMapper.writeValue(response.getOutputStream(), errorDto);
     }
 }

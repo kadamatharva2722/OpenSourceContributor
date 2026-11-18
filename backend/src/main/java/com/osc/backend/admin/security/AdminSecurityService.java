@@ -14,22 +14,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Two-factor authorization service for the administrator console:
- * <ol>
- *   <li>Factor 1: Permanent GitHub numeric ID verification against configured {@code APP_ADMIN_GITHUB_ID}.</li>
- *   <li>Factor 2: Administrator password verification against configured BCrypt {@code ADMIN_PASSWORD_HASH}.</li>
- * </ol>
- *
- * <p>Enforces server-side session authorization, session fixation protection, attempt tracking with
- * temporary lockouts, and fail-closed posture when credentials are missing or unconfigured.
+ * Dedicated administrator password authentication service:
+ * <p>Enforces server-side password verification against configured BCrypt {@code ADMIN_PASSWORD_HASH},
+ * session fixation protection, attempt tracking with temporary lockouts, and fail-closed posture
+ * when credentials are missing or unconfigured.
  */
 @Service
 public class AdminSecurityService {
@@ -64,62 +67,41 @@ public class AdminSecurityService {
     }
 
     /**
-     * Checks if the currently authenticated user's GitHub ID matches the configured admin ID.
+     * Checks if the caller is currently verified with administrator privileges.
      */
     public boolean isAdmin() {
-        if (adminGithubId <= 0) {
-            return false;
-        }
-        try {
-            AppUserPrincipal principal = currentUserProvider.getCurrentPrincipal();
-            return principal != null && Objects.equals(principal.getGithubId(), adminGithubId);
-        } catch (UnauthenticatedException ex) {
-            return false;
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() &&
+                auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     /**
-     * Validates that the current user is authenticated and possesses the authorized admin GitHub ID.
+     * Validates that the current user possesses an admin-verified session.
      */
     public AppUserPrincipal requireAdmin() {
-        AppUserPrincipal principal = currentUserProvider.getCurrentPrincipal();
-        if (principal == null) {
-            throw new UnauthenticatedException("Authentication required to access admin panel");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof AppUserPrincipal principal) {
+            return principal;
         }
-
-        if (adminGithubId <= 0) {
-            log.warn("Admin panel access attempted by user {} (githubId: {}), but APP_ADMIN_GITHUB_ID is not configured",
-                    principal.getUsername(), principal.getGithubId());
-            recordSecurityAudit(principal, "FAILED_ADMIN_ACCESS", "Admin access attempted while administrative privileges are disabled");
-            throw new AccessDeniedException("Administrative privileges are currently disabled on this instance");
-        }
-
-        if (!Objects.equals(principal.getGithubId(), adminGithubId)) {
-            log.warn("Unauthorized admin panel access attempt by user {} (githubId: {}). Expected admin githubId: {}",
-                    principal.getUsername(), principal.getGithubId(), adminGithubId);
-            recordSecurityAudit(principal, "FAILED_ADMIN_ACCESS", "Unauthorized admin access attempt by non-admin account");
-            throw new AccessDeniedException("Access denied: Administrative privileges required");
-        }
-
-        return principal;
+        throw new UnauthenticatedException("Authentication required to access admin panel");
     }
 
     /**
-     * Enforces complete two-factor administrator authorization:
-     * 1. Authenticated GitHub user matches APP_ADMIN_GITHUB_ID.
-     * 2. Server-side session contains verified password attribute (SESSION_ATTR_ADMIN_PASSWORD_VERIFIED = true).
+     * Enforces administrator authorization:
+     * Server-side session contains verified password attribute (SESSION_ATTR_ADMIN_PASSWORD_VERIFIED = true).
      */
     public AppUserPrincipal requireAdminVerified(HttpServletRequest request) {
-        AppUserPrincipal principal = requireAdmin();
-
         if (!isPasswordVerified(request)) {
-            log.warn("Admin data endpoint access rejected for user {} (githubId: {}): password verification required in current session",
-                    principal.getUsername(), principal.getGithubId());
-            recordSecurityAudit(principal, "FAILED_ADMIN_ACCESS", "Admin data endpoint accessed without session password verification");
+            log.warn("Admin data endpoint access rejected: password verification required in current session");
             throw new AccessDeniedException("Access denied: Admin password verification required in the current session");
         }
 
-        return principal;
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof AppUserPrincipal principal) {
+            return principal;
+        }
+
+        return createDefaultAdminPrincipal();
     }
 
     /**
@@ -134,27 +116,13 @@ public class AdminSecurityService {
     }
 
     /**
-     * Returns the comprehensive multi-step authentication status of the current user.
+     * Returns the comprehensive authentication status of the administrator console.
      */
     public AdminStatusDto getAdminStatus(HttpServletRequest request) {
-        try {
-            AppUserPrincipal principal = currentUserProvider.getCurrentPrincipal();
-            if (principal == null) {
-                return new AdminStatusDto(false, false, null, null, "UNAUTHENTICATED", false);
-            }
-
-            if (adminGithubId <= 0 || !Objects.equals(principal.getGithubId(), adminGithubId)) {
-                return new AdminStatusDto(true, false, principal.getUsername(), principal.getGithubId(), "GITHUB_AUTHENTICATED", false);
-            }
-
-            // User is authenticated and matches admin GitHub ID
-            boolean verified = isPasswordVerified(request);
-            if (verified) {
-                return new AdminStatusDto(true, true, principal.getUsername(), principal.getGithubId(), "ADMIN_VERIFIED", false);
-            } else {
-                return new AdminStatusDto(true, false, principal.getUsername(), principal.getGithubId(), "PASSWORD_REQUIRED", true);
-            }
-        } catch (UnauthenticatedException ex) {
+        boolean verified = isPasswordVerified(request);
+        if (verified) {
+            return new AdminStatusDto(true, true, "admin", adminGithubId > 0 ? adminGithubId : 0L, "ADMIN_VERIFIED", false);
+        } else {
             return new AdminStatusDto(false, false, null, null, "UNAUTHENTICATED", false);
         }
     }
@@ -168,37 +136,33 @@ public class AdminSecurityService {
 
     /**
      * Verifies the administrator password against the configured BCrypt hash.
+     * Primary admin authentication endpoint logic.
      *
      * @param rawPassword password entered by the user
      * @param request current HTTP request
      * @return updated AdminStatusDto reflecting verified admin status
      */
     public AdminStatusDto verifyAdminPassword(String rawPassword, HttpServletRequest request) {
-        // Step 1: Enforce GitHub authentication & admin account identity
-        AppUserPrincipal principal = requireAdmin();
-
-        // Step 2: Check attempt lockout (session & IP)
+        // Step 1: Check attempt lockout (session & IP)
         long lockoutRemaining = adminPasswordRateLimiter.getLockoutRemainingSeconds(request);
         if (lockoutRemaining > 0) {
             log.warn("Admin password verification rejected: temporarily locked out (remaining: {}s)", lockoutRemaining);
             throw new AdminLockoutException(lockoutRemaining);
         }
 
-        // Step 3: Fail closed if ADMIN_PASSWORD_HASH is missing, blank, or invalid
+        // Step 2: Fail closed if ADMIN_PASSWORD_HASH is missing, blank, or invalid
         if (!isValidBcryptHash(adminPasswordHash)) {
-            log.warn("Admin password verification attempted by user {} (githubId: {}), but ADMIN_PASSWORD_HASH is not configured or is invalid. Failing closed.",
-                    principal.getUsername(), principal.getGithubId());
-            recordSecurityAudit(principal, "FAILED_ADMIN_PASSWORD_VERIFICATION", "Password verification attempted while ADMIN_PASSWORD_HASH is not configured");
-            throw new AccessDeniedException("Administrative password verification is disabled or unconfigured on this instance");
+            log.warn("Admin password verification attempted, but ADMIN_PASSWORD_HASH is not configured or is invalid. Failing closed.");
+            recordSecurityAudit("admin", "FAILED_ADMIN_PASSWORD_VERIFICATION", "Password verification attempted while ADMIN_PASSWORD_HASH is unconfigured");
+            throw new AccessDeniedException("Administrative access is disabled or unconfigured on this instance");
         }
 
-        // Step 4: Verify password with BCrypt
+        // Step 3: Verify password with BCrypt
         if (rawPassword == null || !passwordEncoder.matches(rawPassword, adminPasswordHash)) {
             long lockoutSeconds = adminPasswordRateLimiter.recordFailure(request);
-            recordSecurityAudit(principal, "FAILED_ADMIN_PASSWORD_VERIFICATION",
+            recordSecurityAudit("admin", "FAILED_ADMIN_PASSWORD_VERIFICATION",
                     "Invalid password attempt" + (lockoutSeconds > 0 ? " (Account locked for 15 minutes)" : ""));
-            log.warn("Admin password verification failed for user {} (githubId: {})",
-                    principal.getUsername(), principal.getGithubId());
+            log.warn("Admin password verification failed (lockoutSeconds: {})", lockoutSeconds);
 
             if (lockoutSeconds > 0) {
                 throw new AdminLockoutException(lockoutSeconds);
@@ -206,33 +170,33 @@ public class AdminSecurityService {
             throw new InvalidAdminPasswordException("Invalid administrator password");
         }
 
-        // Step 5: Verification success
+        // Step 4: Verification success
         adminPasswordRateLimiter.recordSuccess(request);
 
-        // Session fixation protection: rotate session ID while preserving attributes
+        // Step 5: Session fixation protection - rotate session ID
+        AppUserPrincipal adminPrincipal = createDefaultAdminPrincipal();
         if (request != null) {
             request.changeSessionId();
             HttpSession session = request.getSession(true);
             session.setAttribute(SESSION_ATTR_ADMIN_PASSWORD_VERIFIED, Boolean.TRUE);
+
+            Authentication auth = new UsernamePasswordAuthenticationToken(adminPrincipal, null, adminPrincipal.getAuthorities());
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            SecurityContextHolder.setContext(context);
+            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
         }
 
-        log.info("Administrator password successfully verified for user {} (githubId: {})",
-                principal.getUsername(), principal.getGithubId());
-        recordSecurityAudit(principal, "ADMIN_PASSWORD_VERIFIED", "Administrator password successfully verified");
+        log.info("Administrator password successfully verified");
+        recordSecurityAudit("admin", "ADMIN_PASSWORD_VERIFIED", "Administrator password successfully verified");
 
-        return new AdminStatusDto(true, true, principal.getUsername(), principal.getGithubId(), "ADMIN_VERIFIED", false);
+        return new AdminStatusDto(true, true, "admin", adminGithubId > 0 ? adminGithubId : 0L, "ADMIN_VERIFIED", false);
     }
 
     /**
      * Terminates the administrative session, invalidating session state and clearing security context.
      */
     public void logout(HttpServletRequest request) {
-        AppUserPrincipal principal = null;
-        try {
-            principal = currentUserProvider.getCurrentPrincipal();
-        } catch (Exception ignored) {
-        }
-
         if (request != null) {
             HttpSession session = request.getSession(false);
             if (session != null) {
@@ -241,29 +205,36 @@ public class AdminSecurityService {
             }
         }
         SecurityContextHolder.clearContext();
+        recordSecurityAudit("admin", "ADMIN_LOGOUT", "Admin session logged out and invalidated");
+    }
 
-        if (principal != null) {
-            recordSecurityAudit(principal, "ADMIN_LOGOUT", "Admin session logged out and invalidated");
-        }
+    private AppUserPrincipal createDefaultAdminPrincipal() {
+        return new AppUserPrincipal(
+                null,
+                adminGithubId > 0 ? adminGithubId : 0L,
+                "admin",
+                Collections.emptyMap(),
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
     }
 
     private boolean isValidBcryptHash(String hash) {
         return hash != null && !hash.isBlank() && BCRYPT_PATTERN.matcher(hash).matches();
     }
 
-    private void recordSecurityAudit(AppUserPrincipal principal, String action, String details) {
+    private void recordSecurityAudit(String username, String action, String details) {
         try {
             AdminAuditLog auditLog = new AdminAuditLog(
-                    principal.getGithubId(),
-                    principal.getUsername(),
+                    adminGithubId > 0 ? adminGithubId : 0L,
+                    username != null ? username : "admin",
                     action,
                     "SECURITY",
-                    String.valueOf(principal.getGithubId()),
+                    String.valueOf(adminGithubId > 0 ? adminGithubId : 0L),
                     details
             );
             adminAuditLogRepository.save(auditLog);
         } catch (Exception ex) {
-            log.error("Failed to persist security audit log for user {}: {}", principal.getUsername(), ex.getMessage());
+            log.error("Failed to persist security audit log: {}", ex.getMessage());
         }
     }
 

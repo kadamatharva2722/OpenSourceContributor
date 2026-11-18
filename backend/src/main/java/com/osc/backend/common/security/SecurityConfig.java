@@ -135,7 +135,6 @@ public class SecurityConfig {
                         ),
                         org.springframework.security.web.csrf.CsrfFilter.class
                 )
-
                 // 3. CSRF Protection for browser session-based authentication
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
@@ -201,6 +200,7 @@ public class SecurityConfig {
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/status").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/admin/auth/status").permitAll();
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/admin/auth/verify-password").permitAll();
             auth.requestMatchers(HttpMethod.POST, "/api/v1/admin/auth/logout").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/discovery/public").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/system/wake").permitAll();
