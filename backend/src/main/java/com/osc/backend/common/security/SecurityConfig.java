@@ -1,6 +1,7 @@
 package com.osc.backend.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.osc.backend.admin.security.AdminAuthorizationFilter;
 import com.osc.backend.common.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import com.osc.backend.user.repository.UserRepository;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -65,6 +68,9 @@ public class SecurityConfig {
 
     @Value("${app.security.rate-limit.oauth-callback-window-seconds:900}")
     private long oauthCallbackWindowSeconds = 900;
+
+    @Value("${app.security.admin.github-id:0}")
+    private long adminGithubId = 0;
 
     public SecurityConfig(
             ObjectMapper objectMapper,
@@ -155,6 +161,12 @@ public class SecurityConfig {
             );
         }
 
+        // Centralized enforcement of two-factor authorization on admin data endpoints
+        http.addFilterBefore(
+                new AdminAuthorizationFilter(objectMapper, adminGithubId),
+                AuthorizationFilter.class
+        );
+
         // 4. Form login and HTTP Basic disabled
         http
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -188,6 +200,8 @@ public class SecurityConfig {
             // Safe public endpoints
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/csrf").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/status").permitAll();
+            auth.requestMatchers(HttpMethod.GET, "/api/v1/admin/auth/status").permitAll();
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/admin/auth/logout").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/discovery/public").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/system/wake").permitAll();
             auth.requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll();
@@ -328,5 +342,10 @@ public class SecurityConfig {
             );
             objectMapper.writeValue(response.getOutputStream(), errorResponse);
         };
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
