@@ -1,0 +1,165 @@
+/* Self-Hosted Fonts: Anton, Archivo Narrow, Archivo, JetBrains Mono */
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/anton-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/archivo-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/archivo-italic-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Archivo Narrow';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/archivo-narrow-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Archivo Narrow';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/archivo-narrow-italic-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: italic;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-italic-variable.woff2') format('woff2');
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --paper: #0D0D0D;
+    --ink: #F1ECE2;
+    --surface: #1A1A1A;
+    --muted: #A7A29A;
+    --line: rgba(241, 236, 226, 0.18);
+    --label-orange: #F06522;
+    --label-yellow: #F4C13D;
+    --label-blue: #5B86F2;
+    --label-pink: #F29BB8;
+    --on-label: #0D0D0D;
+  }
+
+  * {
+    border-radius: 0px !important;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #0D0D0D;
+    color: #F1ECE2;
+    font-family: 'Archivo Narrow', 'Archivo', sans-serif;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Anton', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Accessible High-Contrast Keyboard Focus Ring */
+  :focus-visible {
+    outline: 2px solid #F06522 !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Custom Archival Editorial Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2E2E2E;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #F06522;
+}
+
+/* Subtly styled dark scrollbar for independently scrollable panels */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #2E2E2E #141414;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #141414;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2E2E2E;
+  border-radius: 0px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #F06522;
+}
+
+/* Printmaker Hover Inversion Utility */
+.tracklist-row:hover {
+  background-color: #F1ECE2 !important;
+  color: #0D0D0D !important;
+}
+
+.tracklist-row:hover .invert-text {
+  color: #0D0D0D !important;
+}
+
+.tracklist-row:hover .invert-muted {
+  color: #404040 !important;
+}
+
+.tracklist-row:hover .invert-border {
+  border-color: #0D0D0D !important;
+}

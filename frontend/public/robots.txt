@@ -1,0 +1,24 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /explore
+Allow: /how-it-works
+Allow: /about
+Allow: /contact
+Allow: /login
+Allow: /privacy
+Allow: /terms
+Allow: /cookie-preferences
+
+# Disallow private user-authenticated workspaces and internal endpoints
+Disallow: /dashboard
+Disallow: /saved-issues
+Disallow: /saved
+Disallow: /crate
+Disallow: /my-contributions
+Disallow: /contributions
+Disallow: /settings
+Disallow: /auth/callback
+Disallow: /api/
+
+Sitemap: https://opensourcecontributor.com/sitemap.xml

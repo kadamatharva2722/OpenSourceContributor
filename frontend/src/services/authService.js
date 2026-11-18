@@ -1,0 +1,47 @@
+import { apiClient, getBaseUrl } from './apiClient';
+
+/**
+ * Checks current session authentication status with the backend.
+ * @returns {Promise<{authenticated: boolean, userId: number|null, username: string|null}>}
+ */
+export async function getAuthStatus() {
+  try {
+    const data = await apiClient('/api/v1/auth/status', { silent: true });
+    if (data && typeof data.authenticated === 'boolean') {
+      return data;
+    }
+    return { authenticated: false, userId: null, username: null };
+  } catch (err) {
+    return { authenticated: false, userId: null, username: null };
+  }
+}
+
+/**
+ * Retrieves the full profile of the currently authenticated user.
+ */
+export async function getCurrentUser() {
+  return await apiClient('/api/v1/auth/me');
+}
+
+/**
+ * Invalidates the current user session and clears authentication cookies.
+ */
+export async function logoutUser() {
+  // First ensure active CSRF token is available
+  await getCsrfToken().catch(() => {});
+  return await apiClient('/api/v1/auth/logout', { method: 'POST' });
+}
+
+/**
+ * Fetches the active CSRF token and sets the XSRF-TOKEN cookie.
+ */
+export async function getCsrfToken() {
+  return await apiClient('/api/v1/auth/csrf');
+}
+
+/**
+ * Returns the full backend GitHub OAuth2 initiation URL.
+ */
+export function getOAuthLoginUrl() {
+  return `${getBaseUrl()}/oauth2/authorization/github`;
+}

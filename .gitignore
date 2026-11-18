@@ -1,0 +1,26 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.log
+
+# Java & Backend
+backend/target/
+*.class
+
+# Test artifacts & temporary files
+cookies.txt
+test-reports.zip
+*.tmp
+*.bak
