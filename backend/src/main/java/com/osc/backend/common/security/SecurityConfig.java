@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,7 +70,7 @@ public class SecurityConfig {
             ObjectMapper objectMapper,
             @Value("${app.openapi.enabled:true}") boolean openApiEnabled,
             @Value("${server.servlet.session.cookie.secure:false}") boolean cookieSecure,
-            @Autowired(required = false) GithubOAuth2SuccessHandler successHandler,
+            @Lazy @Autowired(required = false) GithubOAuth2SuccessHandler successHandler,
             @Autowired(required = false) GithubOAuth2FailureHandler failureHandler,
             @Autowired(required = false) ClientRegistrationRepository clientRegistrationRepository,
             @Autowired(required = false) UserRepository userRepository,
