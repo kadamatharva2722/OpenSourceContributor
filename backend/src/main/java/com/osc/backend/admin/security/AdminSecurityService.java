@@ -173,11 +173,11 @@ public class AdminSecurityService {
         // Step 4: Verification success
         adminPasswordRateLimiter.recordSuccess(request);
 
-        // Step 5: Session fixation protection - rotate session ID
+        // Step 5: Session fixation protection - ensure session exists and rotate session ID
         AppUserPrincipal adminPrincipal = createDefaultAdminPrincipal();
         if (request != null) {
-            request.changeSessionId();
             HttpSession session = request.getSession(true);
+            request.changeSessionId();
             session.setAttribute(SESSION_ATTR_ADMIN_PASSWORD_VERIFIED, Boolean.TRUE);
 
             Authentication auth = new UsernamePasswordAuthenticationToken(adminPrincipal, null, adminPrincipal.getAuthorities());
