@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { ROUTES } from './constants/routes';
 import { useBackendWake } from './hooks/useBackendWake';
 
@@ -46,45 +47,48 @@ export function App() {
   useBackendWake();
 
   return (
-    <Suspense fallback={<PageLoadingFallback />}>
-      <Routes>
-        <Route element={<RootLayout />}>
-          {/* Core Discovery Pages */}
-          <Route path={ROUTES.HOME} element={<HomePage />} />
-          <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
-          <Route path={ROUTES.ISSUE_DETAILS} element={<IssueDetailsPage />} />
+    <>
+      <Suspense fallback={<PageLoadingFallback />}>
+        <Routes>
+          <Route element={<RootLayout />}>
+            {/* Core Discovery Pages */}
+            <Route path={ROUTES.HOME} element={<HomePage />} />
+            <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
+            <Route path={ROUTES.ISSUE_DETAILS} element={<IssueDetailsPage />} />
 
-          {/* Informational Pages */}
-          <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
-          <Route path={ROUTES.ABOUT} element={<AboutPage />} />
-          <Route path={ROUTES.CONTACT} element={<ContactPage />} />
+            {/* Informational Pages */}
+            <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
+            <Route path={ROUTES.ABOUT} element={<AboutPage />} />
+            <Route path={ROUTES.CONTACT} element={<ContactPage />} />
 
-          {/* Auth Pages */}
-          <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-          <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallbackPage />} />
+            {/* Auth Pages */}
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallbackPage />} />
 
-          {/* Contributor Workspace Pages (Protected - Requires Backend Session) */}
-          <Route element={<ProtectedRoute />}>
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-            <Route path={ROUTES.SAVED_ISSUES} element={<SavedIssuesPage />} />
-            <Route path="/saved" element={<Navigate to={ROUTES.SAVED_ISSUES} replace />} />
-            <Route path={ROUTES.CRATE} element={<Navigate to={ROUTES.SAVED_ISSUES} replace />} />
-            <Route path={ROUTES.MY_CONTRIBUTIONS} element={<MyContributionsPage />} />
-            <Route path="/contributions" element={<Navigate to={ROUTES.MY_CONTRIBUTIONS} replace />} />
-            <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+            {/* Contributor Workspace Pages (Protected - Requires Backend Session) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+              <Route path={ROUTES.SAVED_ISSUES} element={<SavedIssuesPage />} />
+              <Route path="/saved" element={<Navigate to={ROUTES.SAVED_ISSUES} replace />} />
+              <Route path={ROUTES.CRATE} element={<Navigate to={ROUTES.SAVED_ISSUES} replace />} />
+              <Route path={ROUTES.MY_CONTRIBUTIONS} element={<MyContributionsPage />} />
+              <Route path="/contributions" element={<Navigate to={ROUTES.MY_CONTRIBUTIONS} replace />} />
+              <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+            </Route>
+
+            {/* Legal & Archival Pages */}
+            <Route path={ROUTES.PRIVACY} element={<PrivacyPage />} />
+            <Route path={ROUTES.TERMS} element={<TermsPage />} />
+            <Route path={ROUTES.COOKIE_PREFERENCES} element={<CookiePreferencesPage />} />
+            <Route path={ROUTES.THANK_YOU} element={<ThankYouPage />} />
+
+            {/* 404 Catch-All */}
+            <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
           </Route>
-
-          {/* Legal & Archival Pages */}
-          <Route path={ROUTES.PRIVACY} element={<PrivacyPage />} />
-          <Route path={ROUTES.TERMS} element={<TermsPage />} />
-          <Route path={ROUTES.COOKIE_PREFERENCES} element={<CookiePreferencesPage />} />
-          <Route path={ROUTES.THANK_YOU} element={<ThankYouPage />} />
-
-          {/* 404 Catch-All */}
-          <Route path={ROUTES.NOT_FOUND} element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+      <Analytics />
+    </>
   );
 }
 
