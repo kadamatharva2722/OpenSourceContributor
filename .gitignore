@@ -24,3 +24,6 @@ cookies.txt
 test-reports.zip
 *.tmp
 *.bak
+
+# Private Admin Panel
+/admin-panel/

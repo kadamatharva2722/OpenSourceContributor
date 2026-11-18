@@ -190,6 +190,9 @@ public class SecurityConfig {
             auth.requestMatchers(HttpMethod.GET, "/api/v1/auth/status").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/discovery/public").permitAll();
             auth.requestMatchers(HttpMethod.GET, "/api/v1/system/wake").permitAll();
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/contact").permitAll();
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/reports/issues").permitAll();
+            auth.requestMatchers(HttpMethod.POST, "/api/v1/requests/repositories").permitAll();
 
             // OAuth2 authentication endpoints
             auth.requestMatchers("/oauth2/authorization/**", "/login/oauth2/code/**").permitAll();
@@ -238,15 +241,21 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.frontend.url:http://localhost:3000}") String frontendUrl
+            @Value("${app.frontend.url:http://localhost:3000}") String frontendUrl,
+            @Value("${app.admin-frontend.url:http://localhost:3001}") String adminFrontendUrl
     ) {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 frontendUrl,
+                adminFrontendUrl,
                 "http://localhost:3000",
+                "http://localhost:3001",
                 "http://localhost:5173",
+                "http://localhost:5174",
                 "http://127.0.0.1:3000",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:3001",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:5174"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-Requested-With", "Accept", "Origin"));

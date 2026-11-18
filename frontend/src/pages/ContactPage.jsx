@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Button } from '../components/ui/Button';
-import { Terminal, Send, Mail, MessageSquare, Shield, CheckCircle2, Info } from 'lucide-react';
+import { apiClient } from '../services/apiClient';
+import { Terminal, Send, Mail, MessageSquare, Shield, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 
 export function ContactPage() {
   useDocumentTitle('Contact');
@@ -18,7 +19,7 @@ export function ContactPage() {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,8 +34,21 @@ export function ContactPage() {
     }
 
     setSubmitting(true);
-    setTimeout(() => {
-      const submissionId = `OSC-${Date.now().toString(36).toUpperCase()}`;
+    setErrors({});
+
+    try {
+      const response = await apiClient('/api/v1/contact', {
+        method: 'POST',
+        body: {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          topic: form.topic,
+          subject: form.subject.trim(),
+          message: form.message.trim(),
+        },
+      });
+
+      const submissionId = response?.referenceCode || `OSC-${Date.now().toString(36).toUpperCase()}`;
       navigate(ROUTES.THANK_YOU, {
         state: {
           submitted: true,
@@ -44,11 +58,15 @@ export function ContactPage() {
           email: form.email.trim(),
           subject: form.subject.trim(),
           message: form.message.trim(),
-          timestamp: new Date().toISOString(),
+          timestamp: response?.createdAt || new Date().toISOString(),
         },
         replace: true,
       });
-    }, 400);
+    } catch (err) {
+      setErrors({ form: err.message || 'TRANSMISSION FAILED. PLEASE VERIFY CONNECTION AND TRY AGAIN.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -80,9 +98,16 @@ export function ContactPage() {
           <div className="bg-[#1A1A1A] border border-[#2E2E2E] p-3 text-xs font-mono text-[#A7A29A] flex items-start space-x-2.5">
             <Info size={15} className="text-[#F4C13D] shrink-0 mt-0.5" />
             <p className="leading-relaxed text-[11px]">
-              <strong className="text-[#F1ECE2]">DISPATCH NOTICE:</strong> Direct automated server-side email dispatch is pending SMTP mail-relay configuration by the platform owner. Submitting this form prepares your message receipt locally and generates an email draft you can send directly.
+              <strong className="text-[#F1ECE2]">DISPATCH NOTICE:</strong> Messages are securely stored in the platform database for immediate review by repository maintainers.
             </p>
           </div>
+
+          {errors.form && (
+            <div className="bg-[#2D1515] border border-[#FF4444] p-3 text-xs font-mono text-[#FF8585] flex items-center space-x-2.5">
+              <AlertTriangle size={16} className="text-[#FF4444] shrink-0" />
+              <span>{errors.form}</span>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
             <div>

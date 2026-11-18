@@ -20,7 +20,7 @@ export function AboutPage() {
             ARCHIVAL PRECISION FOR OPEN SOURCE
           </h1>
           <p className="font-mono text-base md:text-lg text-[#A7A29A] leading-relaxed">
-            Open-source contribution discovery is broken. We built a high-density, high-cohesion discovery engine to connect developers with verified tasks that actually get merged.
+            Finding the right open-source contribution should be simple. We built a focused discovery platform that connects developers with meaningful, verified issues across real GitHub repositories.
           </p>
         </div>
       </section>

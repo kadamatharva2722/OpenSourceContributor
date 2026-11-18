@@ -160,7 +160,7 @@ public class OAuthLoginRateLimitingFilter extends OncePerRequestFilter {
             AttemptBucket bucket = initiationBuckets.computeIfAbsent(clientIp, ip -> new AttemptBucket(now));
             if (!bucket.tryAcquire(now, initiationMaxAttempts, initiationWindowMs)) {
                 long retryAfter = bucket.getRetryAfterSeconds(now, initiationWindowMs);
-                log.warn("OAuth login initiation rate limit exceeded for clientIp={}, URI={}. Retry-After={}s", clientIp, uri, retryAfter);
+                log.warn("OAuth login initiation rate limit exceeded for clientIp={}, URI={}. Retry-After={}s", ClientIpResolver.maskIp(clientIp), uri, retryAfter);
                 sendRateLimitResponse(response, uri, retryAfter, "OAuth login initiation rate limit exceeded. Please wait before retrying.");
                 return;
             }
@@ -173,7 +173,7 @@ public class OAuthLoginRateLimitingFilter extends OncePerRequestFilter {
             AttemptBucket bucket = callbackBuckets.computeIfAbsent(clientIp, ip -> new AttemptBucket(now));
             if (!bucket.tryAcquire(now, callbackMaxAttempts, callbackWindowMs)) {
                 long retryAfter = bucket.getRetryAfterSeconds(now, callbackWindowMs);
-                log.warn("OAuth callback rate limit exceeded for clientIp={}, URI={}. Retry-After={}s", clientIp, uri, retryAfter);
+                log.warn("OAuth callback rate limit exceeded for clientIp={}, URI={}. Retry-After={}s", ClientIpResolver.maskIp(clientIp), uri, retryAfter);
                 sendRateLimitResponse(response, uri, retryAfter, "OAuth callback rate limit exceeded. Please wait before retrying.");
                 return;
             }
