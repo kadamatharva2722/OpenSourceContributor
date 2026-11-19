@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,17 +45,43 @@ public class AuthController {
     @Operation(summary = "Get CSRF Token", description = "Exposes active CSRF token details for browser-based session requests")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Active CSRF token returned successfully"),
-            @ApiResponse(responseCode = "204", description = "No CSRF token present on request")
+            @ApiResponse(responseCode = "204", description = "No CSRF token present on request"),
+            @ApiResponse(responseCode = "500", description = "Raw CSRF token could not be resolved")
     })
     public ResponseEntity<CsrfTokenResponseDto> getCsrfToken(HttpServletRequest request) {
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         if (csrfToken == null) {
             return ResponseEntity.noContent().build();
         }
+
+        // Resolve raw token value so the frontend header matches the CookieCsrfTokenRepository
+        String tokenValue = null;
+        Object rawSupplier = request.getAttribute(SpaCsrfTokenRequestHandler.RAW_CSRF_TOKEN_ATTR);
+        if (rawSupplier instanceof java.util.function.Supplier<?> supplier) {
+            Object rawObj = supplier.get();
+            if (rawObj instanceof CsrfToken rawCsrf) {
+                tokenValue = rawCsrf.getToken();
+            }
+        }
+        if (tokenValue == null && request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                if ("XSRF-TOKEN".equals(c.getName()) && c.getValue() != null && !c.getValue().isBlank()) {
+                    tokenValue = c.getValue();
+                    break;
+                }
+            }
+        }
+
+        // Never return an XOR-masked token as the raw SPA token.
+        // If the raw token cannot be resolved from the raw supplier or cookie, return an error.
+        if (tokenValue == null || tokenValue.isBlank()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
         return ResponseEntity.ok(new CsrfTokenResponseDto(
                 csrfToken.getHeaderName(),
                 csrfToken.getParameterName(),
-                csrfToken.getToken()
+                tokenValue
         ));
     }
 

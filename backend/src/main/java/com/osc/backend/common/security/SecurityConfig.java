@@ -29,6 +29,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
@@ -276,7 +277,7 @@ public class SecurityConfig {
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN", "X-Requested-With", "Accept", "Origin"));
-        configuration.setExposedHeaders(List.of("Set-Cookie", "X-XSRF-TOKEN"));
+        configuration.setExposedHeaders(List.of("Set-Cookie", "X-XSRF-TOKEN", "X-CSRF-Error"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
@@ -306,6 +307,10 @@ public class SecurityConfig {
         return (request, response, accessDeniedException) -> {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            boolean isCsrfException = accessDeniedException instanceof CsrfException;
+            if (isCsrfException) {
+                response.setHeader("X-CSRF-Error", "true");
+            }
             String message = accessDeniedException.getMessage() != null && !accessDeniedException.getMessage().isBlank()
                     ? accessDeniedException.getMessage()
                     : "Access is denied";

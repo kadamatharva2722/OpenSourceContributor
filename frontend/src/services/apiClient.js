@@ -17,9 +17,11 @@ export function getBaseUrl() {
 }
 
 let memoryCsrfToken = null;
+let csrfFetchPromise = null;
 
 export function clearCsrfToken() {
   memoryCsrfToken = null;
+  csrfFetchPromise = null;
 }
 
 /**
@@ -27,26 +29,39 @@ export function clearCsrfToken() {
  * Works seamlessly in both same-origin (proxied) and cross-origin (direct) configurations
  * by storing the JSON token in memory when document.cookie is partitioned or cross-origin.
  */
-export async function fetchCsrfToken() {
-  try {
-    const response = await fetch(`${BASE_URL}/api/v1/auth/csrf`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-    if (response.ok && response.status !== 204) {
-      const data = await response.json();
-      if (data && data.token) {
-        memoryCsrfToken = data.token;
-        return memoryCsrfToken;
-      }
-    }
-  } catch (err) {
-    // Proactive CSRF token fetch fallback
+export async function fetchCsrfToken(force = false) {
+  if (memoryCsrfToken && !force) {
+    return memoryCsrfToken;
   }
-  return null;
+  if (csrfFetchPromise && !force) {
+    return csrfFetchPromise;
+  }
+
+  csrfFetchPromise = (async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/v1/auth/csrf`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+      if (response.ok && response.status !== 204) {
+        const data = await response.json();
+        if (data && data.token) {
+          memoryCsrfToken = data.token;
+          return memoryCsrfToken;
+        }
+      }
+    } catch (err) {
+      // Proactive CSRF token fetch fallback
+    } finally {
+      csrfFetchPromise = null;
+    }
+    return memoryCsrfToken;
+  })();
+
+  return csrfFetchPromise;
 }
 
 export function getCookie(name) {
@@ -62,11 +77,17 @@ export async function apiClient(endpoint, options = {}) {
     'Accept': 'application/json',
   };
 
-  // Attach CSRF token on mutating requests if present in cookies or in memory
+  // Attach CSRF token on mutating requests if present in memory or cookies
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    let xsrfToken = getCookie('XSRF-TOKEN') || memoryCsrfToken;
+    let xsrfToken = memoryCsrfToken;
+    if (!xsrfToken && !BASE_URL) {
+      xsrfToken = getCookie('XSRF-TOKEN');
+    }
     if (!xsrfToken) {
       xsrfToken = await fetchCsrfToken();
+    }
+    if (!xsrfToken) {
+      xsrfToken = getCookie('XSRF-TOKEN');
     }
     if (xsrfToken) {
       defaultHeaders['X-XSRF-TOKEN'] = xsrfToken;
@@ -91,6 +112,42 @@ export async function apiClient(endpoint, options = {}) {
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+    // Handle 403 Forbidden: differentiate CSRF failures from genuine authorization rejections
+    if (response.status === 403) {
+      const isMutating = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
+      const isCsrfError = response.headers.get('x-csrf-error') === 'true';
+
+      // 1. Retry only when the response identifies a CSRF failure via x-csrf-error on a mutating request and not retried yet
+      if (isMutating && isCsrfError && !options._csrfRetry) {
+        clearCsrfToken();
+        const freshToken = await fetchCsrfToken(true);
+        if (freshToken) {
+          // Preserve original request body, custom headers, and credentials while updating CSRF header
+          const retriedHeaders = { ...(options.headers || {}) };
+          Object.keys(retriedHeaders).forEach((k) => {
+            if (k.toLowerCase() === 'x-xsrf-token') {
+              delete retriedHeaders[k];
+            }
+          });
+          retriedHeaders['X-XSRF-TOKEN'] = freshToken;
+
+          // Retried at most once via _csrfRetry: true
+          return apiClient(endpoint, {
+            ...options,
+            _csrfRetry: true,
+            headers: retriedHeaders,
+          });
+        }
+      }
+
+      // 2. Genuine authorization failures (or already-retried CSRF failures) are returned immediately
+      const errorData = await response.json().catch(() => ({}));
+      const error = new Error(errorData.message || `Request failed with status ${response.status}`);
+      error.status = response.status;
+      error.data = errorData;
+      throw error;
+    }
 
     if (response.status === 204) {
       return null;
