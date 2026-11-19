@@ -408,7 +408,10 @@ export function ExplorePage() {
         setSavedIds((prev) => prev.filter((id) => id !== issueIdStr));
         showToast('REMOVED ISSUE FROM SAVED CRATE');
       } else {
-        const repoFullName = issue.repository?.fullName || (issue.repo ? issue.repo : 'unknown/repo');
+        const repoFullName =
+          issue.repositoryFullName ||
+          issue.repository?.fullName ||
+          (issue.repo ? issue.repo : 'unknown/repo');
         const newSaved = await savedIssueService.saveIssue({
           githubIssueId: issue.id,
           repositoryFullName: repoFullName,
@@ -421,8 +424,20 @@ export function ExplorePage() {
         showToast('SAVED ISSUE TO CRATE');
       }
     } catch (err) {
-      console.error('Failed to toggle save issue:', err);
-      showToast('ERROR: FAILED TO UPDATE SAVED CRATE');
+      if (err?.status === 409) {
+        // Issue is already in crate on backend - reconcile local state
+        setSavedIds((prev) => (prev.includes(issueIdStr) ? prev : [...prev, issueIdStr]));
+        showToast('ISSUE IS ALREADY IN CRATE');
+        try {
+          const freshList = await savedIssueService.getSavedIssues();
+          setSavedList(freshList);
+        } catch {
+          // ignore
+        }
+      } else {
+        console.error('Failed to toggle save issue:', err);
+        showToast('ERROR: FAILED TO UPDATE SAVED CRATE');
+      }
     }
   };
 

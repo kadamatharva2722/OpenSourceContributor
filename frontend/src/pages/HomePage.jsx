@@ -230,17 +230,25 @@ export function HomePage() {
           });
         }
       } else {
+        const repoFullName =
+          issue.repositoryFullName ||
+          issue.repository?.fullName ||
+          (issue.repo ? issue.repo : 'unknown/repo');
         await savedIssueService.saveIssue({
           githubIssueId: issue.id,
-          repositoryFullName: issue.repositoryFullName,
+          repositoryFullName: repoFullName,
           issueNumber: issue.number,
           title: issue.title,
-          issueUrl: issue.htmlUrl,
+          issueUrl: issue.htmlUrl || issue.url || `https://github.com/${repoFullName}/issues/${issue.number}`,
         });
         setSavedIds((prev) => new Set([...prev, issueIdStr]));
       }
     } catch (err) {
-      console.error('Failed to toggle save issue:', err);
+      if (err?.status === 409) {
+        setSavedIds((prev) => new Set([...prev, issueIdStr]));
+      } else {
+        console.error('Failed to toggle save issue:', err);
+      }
     }
   };
 

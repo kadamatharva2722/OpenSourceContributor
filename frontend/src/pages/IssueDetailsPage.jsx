@@ -128,12 +128,17 @@ export function IssueDetailsPage() {
         }
         setIsSaved(false);
       } else {
+        const repoFullName =
+          issue.repositoryFullName ||
+          issue.repo ||
+          issue.repository?.fullName ||
+          'unknown/repo';
         const saved = await savedIssueService.saveIssue({
           githubIssueId: issue.githubIssueId || issue.id || Date.now(),
-          repositoryFullName: issue.repo,
+          repositoryFullName: repoFullName,
           issueNumber: issue.number,
           title: issue.title,
-          issueUrl: issue.url || `https://github.com/${issue.repo}/issues/${issue.number}`,
+          issueUrl: issue.htmlUrl || issue.url || `https://github.com/${repoFullName}/issues/${issue.number}`,
         });
         if (saved?.id) {
           setIssue((prev) => ({ ...prev, savedRecordId: saved.id }));
@@ -141,7 +146,11 @@ export function IssueDetailsPage() {
         setIsSaved(true);
       }
     } catch (err) {
-      console.error('Failed to toggle save:', err);
+      if (err?.status === 409) {
+        setIsSaved(true);
+      } else {
+        console.error('Failed to toggle save:', err);
+      }
     }
   };
 
