@@ -5,10 +5,48 @@
  * and automatically sends CSRF tokens on state-changing requests.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '';
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_URL ||
+  (import.meta.env.PROD
+    ? 'https://opensourcecontributor-backend.onrender.com'
+    : '');
 
 export function getBaseUrl() {
   return BASE_URL;
+}
+
+let memoryCsrfToken = null;
+
+export function clearCsrfToken() {
+  memoryCsrfToken = null;
+}
+
+/**
+ * Proactively fetches active CSRF token from the backend /api/v1/auth/csrf endpoint.
+ * Works seamlessly in both same-origin (proxied) and cross-origin (direct) configurations
+ * by storing the JSON token in memory when document.cookie is partitioned or cross-origin.
+ */
+export async function fetchCsrfToken() {
+  try {
+    const response = await fetch(`${BASE_URL}/api/v1/auth/csrf`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+    if (response.ok && response.status !== 204) {
+      const data = await response.json();
+      if (data && data.token) {
+        memoryCsrfToken = data.token;
+        return memoryCsrfToken;
+      }
+    }
+  } catch (err) {
+    // Proactive CSRF token fetch fallback
+  }
+  return null;
 }
 
 export function getCookie(name) {
@@ -24,16 +62,11 @@ export async function apiClient(endpoint, options = {}) {
     'Accept': 'application/json',
   };
 
-  // Attach CSRF token on mutating requests if present in cookies
+  // Attach CSRF token on mutating requests if present in cookies or in memory
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    let xsrfToken = getCookie('XSRF-TOKEN');
+    let xsrfToken = getCookie('XSRF-TOKEN') || memoryCsrfToken;
     if (!xsrfToken) {
-      try {
-        await fetch(`${BASE_URL}/api/v1/auth/csrf`, { credentials: 'include' });
-        xsrfToken = getCookie('XSRF-TOKEN');
-      } catch {
-        // Proactive CSRF token fetch fallback
-      }
+      xsrfToken = await fetchCsrfToken();
     }
     if (xsrfToken) {
       defaultHeaders['X-XSRF-TOKEN'] = xsrfToken;

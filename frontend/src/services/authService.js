@@ -1,4 +1,4 @@
-import { apiClient, getBaseUrl } from './apiClient';
+import { apiClient, getBaseUrl, fetchCsrfToken, clearCsrfToken } from './apiClient';
 
 /**
  * Checks current session authentication status with the backend.
@@ -28,14 +28,20 @@ export async function getCurrentUser() {
  */
 export async function logoutUser() {
   // First ensure active CSRF token is available
-  await getCsrfToken().catch(() => {});
-  return await apiClient('/api/v1/auth/logout', { method: 'POST' });
+  await fetchCsrfToken().catch(() => {});
+  const result = await apiClient('/api/v1/auth/logout', { method: 'POST' });
+  clearCsrfToken();
+  return result;
 }
 
 /**
  * Fetches the active CSRF token and sets the XSRF-TOKEN cookie.
  */
 export async function getCsrfToken() {
+  const token = await fetchCsrfToken();
+  if (token) {
+    return { token };
+  }
   return await apiClient('/api/v1/auth/csrf');
 }
 

@@ -72,13 +72,13 @@ public class SecurityConfig {
     @Value("${app.security.admin.github-id:0}")
     private long adminGithubId = 0;
 
-    @Value("${server.servlet.session.cookie.same-site:lax}")
-    private String cookieSameSite = "lax";
+    @Value("${server.servlet.session.cookie.same-site:none}")
+    private String cookieSameSite = "none";
 
     public SecurityConfig(
             ObjectMapper objectMapper,
             @Value("${app.openapi.enabled:true}") boolean openApiEnabled,
-            @Value("${server.servlet.session.cookie.secure:false}") boolean cookieSecure,
+            @Value("${server.servlet.session.cookie.secure:true}") boolean cookieSecure,
             @Lazy @Autowired(required = false) GithubOAuth2SuccessHandler successHandler,
             @Autowired(required = false) GithubOAuth2FailureHandler failureHandler,
             @Autowired(required = false) ClientRegistrationRepository clientRegistrationRepository,

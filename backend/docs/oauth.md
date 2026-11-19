@@ -12,8 +12,8 @@ The OpenSourceContributor backend uses Spring Security's OAuth 2.0 authorization
 | `GITHUB_CLIENT_ID` | Yes (for OAuth) | *None* | GitHub OAuth App Client ID |
 | `GITHUB_CLIENT_SECRET` | Yes (for OAuth) | *None* | GitHub OAuth App Client Secret |
 | `FRONTEND_URL` | No | `http://localhost:5173` | React frontend URL for post-login redirects |
-| `SESSION_COOKIE_SECURE`| No | `false` | Set to `true` in production (requires HTTPS) |
-| `SESSION_COOKIE_SAME_SITE`| No | `lax` | Cookie SameSite policy (`lax`, `strict`, or `none` for cross-site) |
+| `SESSION_COOKIE_SECURE`| No | `true` | Set to `true` in production (requires HTTPS for SameSite=None) |
+| `SESSION_COOKIE_SAME_SITE`| No | `none` | Cookie SameSite policy (`none` for cross-origin Vercel/Render, `lax`, or `strict`) |
 
 > **Graceful Fallback**: If `GITHUB_CLIENT_ID` or `GITHUB_CLIENT_SECRET` are not set, the application initializes an `EmptyClientRegistrationRepository`. The application boots cleanly for local development, API documentation inspection, and health monitoring without crashing.
 
