@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { browsePublicIssues } from '../services/discoveryService';
 import { savedIssueService } from '../services/savedIssueService';
 import { getAuthStatus } from '../services/authService';
@@ -134,7 +134,12 @@ const JOURNEY_STEPS = [
 ];
 
 export function HomePage() {
-  useDocumentTitle();
+  usePageSEO({
+    title: 'OpenSourceContributor — Open Source Contribution Platform & Issue Finder',
+    description:
+      'OpenSourceContributor is an open source contribution platform and issue finder. Discover beginner-friendly GitHub issues and projects matching your skills.',
+    canonicalPath: '',
+  });
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [featuredMatches, setFeaturedMatches] = useState([]);
@@ -262,7 +267,7 @@ export function HomePage() {
           <div className="lg:col-span-7 xl:col-span-8 space-y-4">
             <div className="inline-flex items-center space-x-2 text-xs font-mono text-[#F4C13D]">
               <span className="w-2.5 h-2.5 bg-[#F06522] inline-block" />
-              <span className="tracking-widest uppercase font-bold">OPEN SOURCE DISCOVERY</span>
+              <span className="tracking-widest uppercase font-bold">OPEN SOURCE CONTRIBUTION PLATFORM</span>
             </div>
 
             <h1 className="font-heading text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] tracking-tight leading-[0.88] uppercase">
@@ -277,7 +282,7 @@ export function HomePage() {
           {/* Right Column: Information Panel */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-4 lg:border-l lg:border-[#2E2E2E] lg:pl-8">
             <p className="font-mono text-xs md:text-sm text-[#A7A29A] leading-relaxed">
-              Discover open-source projects and real GitHub issues that match your skills, interests and experience. Explore opportunities across technologies and contribute to projects that matter.
+              OpenSourceContributor is an open source contribution platform and GitHub issue finder. Discover open-source projects and beginner-friendly issues matching your skills, interests, and experience. Explore contribution opportunities across technologies and start contributing to repositories that matter.
             </p>
 
             <div className="border-t border-[#2E2E2E] pt-4 flex flex-wrap items-center gap-3">
@@ -842,7 +847,7 @@ export function HomePage() {
               STOP SEARCHING.<br />START CONTRIBUTING.
             </h2>
             <p className="font-mono text-sm md:text-base text-[#0D0D0D] font-medium mt-2 leading-relaxed">
-              Find an issue that fits your skills and take your next step into open source today. Real repositories. Active teams. Genuine contributions.
+              Find open source issues that fit your skills and take your next step into open source today. Real repositories. Active teams. Genuine contribution opportunities.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
@@ -863,7 +868,7 @@ export function HomePage() {
         <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#141414]/95 backdrop-blur-md border-t-2 border-[#F06522] px-4 py-3 flex items-center justify-between shadow-2xl">
           <div className="space-y-0.5">
             <span className="block font-mono text-[10px] text-[#F4C13D] uppercase font-bold tracking-wider">
-              OPEN SOURCE DISCOVERY
+              OPEN SOURCE ISSUE FINDER
             </span>
             <span className="block font-heading text-sm text-[#F1ECE2] uppercase tracking-tight">
               REAL GITHUB ISSUES

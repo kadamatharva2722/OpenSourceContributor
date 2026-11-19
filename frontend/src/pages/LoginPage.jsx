@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import { getAuthStatus, getOAuthLoginUrl } from '../services/authService';
 import {
@@ -20,7 +20,12 @@ import {
 } from 'lucide-react';
 
 export function LoginPage() {
-  useDocumentTitle('Sign In');
+  usePageSEO({
+    title: 'Sign In',
+    description: 'Sign in to OpenSourceContributor using your GitHub account.',
+    canonicalPath: ROUTES.LOGIN,
+    noindex: true,
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 export const BRAND_NAME = 'OpenSourceContributor';
-export const DEFAULT_DOCUMENT_TITLE = 'OpenSourceContributor — Find Where You Fit. Contribute.';
+export const DEFAULT_DOCUMENT_TITLE = 'OpenSourceContributor — Open Source Contribution Platform & Issue Finder';
 
 /**
  * Lightweight custom hook to set the document title for a component or page.

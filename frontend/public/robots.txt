@@ -21,4 +21,4 @@ Disallow: /settings
 Disallow: /auth/callback
 Disallow: /api/
 
-Sitemap: https://opensourcecontributor.com/sitemap.xml
+Sitemap: https://opensourcecontributor.vercel.app/sitemap.xml

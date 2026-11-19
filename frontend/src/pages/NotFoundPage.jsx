@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import { AlertTriangle, ArrowLeft, Compass } from 'lucide-react';
 
 export function NotFoundPage() {
-  useDocumentTitle('Page Not Found');
+  usePageSEO({
+    title: 'Page Not Found',
+    description: 'The requested resource was not found on OpenSourceContributor.',
+    noindex: true,
+  });
   return (
     <div className="flex-1 flex items-center justify-center bg-[#0D0D0D] text-[#F1ECE2] px-4 py-16 md:py-24">
       <div className="w-full max-w-lg border-2 border-[#2E2E2E] bg-[#141414] p-6 sm:p-8 text-center space-y-6">

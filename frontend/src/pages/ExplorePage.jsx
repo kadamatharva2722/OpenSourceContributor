@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { savedIssueService } from '../services/savedIssueService';
 import {
   browsePublicIssues,
@@ -44,7 +44,12 @@ const SORTS = [
 ];
 
 export function ExplorePage() {
-  useDocumentTitle('Explore Issues');
+  usePageSEO({
+    title: 'Find Beginner-Friendly Open Source Issues',
+    description:
+      'Find beginner-friendly open source issues and good first issues on GitHub. Search verified repositories, discover contribution opportunities, and start coding.',
+    canonicalPath: ROUTES.EXPLORE,
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -500,18 +505,18 @@ export function ExplorePage() {
               </span>
               <span className="w-1.5 h-1.5 bg-[#2E2E2E] inline-block" />
               <span className="text-[#A7A29A] uppercase tracking-wider">
-                GITHUB ISSUE EXPLORER
+                GITHUB ISSUE FINDER
               </span>
             </div>
 
             <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl uppercase text-[#F1ECE2] tracking-tight leading-none">
-              EXPLORE ISSUES.
+              FIND OPEN SOURCE ISSUES.
             </h1>
 
             <p className="font-mono text-xs md:text-sm text-[#A7A29A] leading-relaxed max-w-2xl">
               {mode === 'AUTHENTICATED_AI'
-                ? 'Describe your tech stack, skills, or target tasks in natural language. AI interprets semantic intent and ranks issues by multi-factor relevance.'
-                : 'Browse verified open-source issues using keywords, languages, and maintainer labels.'}
+                ? 'Describe your tech stack, skills, or target tasks in natural language to discover beginner-friendly GitHub issues and contribution opportunities ranked by AI.'
+                : 'Find beginner-friendly open source issues and good first issues across verified GitHub repositories by keyword, programming language, and maintainer label.'}
             </p>
           </div>
 
@@ -628,7 +633,7 @@ export function ExplorePage() {
                   id="issue-search-input"
                   name="q"
                   type="text"
-                  aria-label="Search open-source issues by keyword or natural language"
+                  aria-label="Find beginner-friendly open source issues by keyword or natural language"
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value);
@@ -639,7 +644,7 @@ export function ExplorePage() {
                       ? currentUser
                         ? "Describe your skills & tasks... e.g. 'Find beginner-friendly Java issues with good first issue labels in active repos'"
                         : "Sign in with GitHub to use AI Semantic Search (or switch to Guest Browse)..."
-                      : "Enter keywords (e.g. 'kafka', 'memory leak', 'oauth') or select filters below..."
+                      : "Find open source issues by keyword (e.g. 'kafka', 'bug', 'docs') or select filters below..."
                   }
                   className="w-full bg-transparent font-mono text-sm text-[#F1ECE2] placeholder:text-[#666666] focus:outline-none"
                   disabled={loading}
@@ -967,7 +972,7 @@ export function ExplorePage() {
                 FIND YOUR NEXT OPEN SOURCE CONTRIBUTION.
               </h2>
               <p className="text-xs md:text-sm text-[#A7A29A] leading-relaxed">
-                Search real GitHub opportunities. Guests can browse publicly using deterministic filters with zero quota limits. Registered contributors receive 20 daily AI searches for semantic natural language interpretation.
+                Search verified open-source projects and beginner-friendly GitHub issues to contribute to. Filter by programming language, maintainer labels like "good first issue", or use AI semantic search to find contribution opportunities that fit your tech stack.
               </p>
             </div>
 
@@ -1001,7 +1006,7 @@ export function ExplorePage() {
             </div>
 
             <div className="pt-2 border-t border-[#222222] text-[#A7A29A] text-xs">
-              <span>Use the search bar and filters above to discover verified open source opportunities.</span>
+              <span>Use the search bar and filters above to find beginner-friendly open source issues and GitHub contribution opportunities.</span>
             </div>
           </div>
         )}

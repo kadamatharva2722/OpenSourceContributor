@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import { apiClient } from '../services/apiClient';
 import { Terminal, Send, Mail, MessageSquare, Shield, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 
 export function ContactPage() {
-  useDocumentTitle('Contact');
+  usePageSEO({
+    title: 'Contact OpenSourceContributor — Support & Repository Indexing',
+    description:
+      'Contact OpenSourceContributor for support, repository indexing requests, or platform feedback. Reach the maintainers behind the open source contribution platform.',
+    canonicalPath: ROUTES.CONTACT,
+  });
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '',
@@ -76,13 +81,13 @@ export function ContactPage() {
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#1A1A1A] border border-[#2E2E2E] text-xs font-mono text-[#F4C13D]">
             <Terminal size={14} />
-            <span className="uppercase tracking-widest">DISPATCH TERMINAL // COMMUNICATIONS</span>
+            <span className="uppercase tracking-widest">OPENSOURCECONTRIBUTOR SUPPORT // CONTACT</span>
           </div>
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl uppercase tracking-tight text-[#F1ECE2]">
-            DISPATCH TRANSMISSION
+            CONTACT &amp; SUPPORT
           </h1>
           <p className="font-mono text-sm md:text-base text-[#A7A29A] leading-relaxed">
-            Submit repository indexing requests, suggest architectural enhancements, or report indexing anomalies directly to the maintainers.
+            Contact OpenSourceContributor support. Submit repository indexing requests, ask questions, or report issue indexing anomalies directly to the platform maintainers.
           </p>
         </div>
       </section>

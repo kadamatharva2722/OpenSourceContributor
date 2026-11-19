@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import {
   Terminal,
@@ -28,7 +28,12 @@ import {
 } from 'lucide-react';
 
 export function HowItWorksPage() {
-  useDocumentTitle('How It Works');
+  usePageSEO({
+    title: 'How to Contribute to Open Source for Beginners',
+    description:
+      'Learn how to contribute to open source and find your first GitHub issues. A complete beginner guide to discovering good first issues and opening pull requests.',
+    canonicalPath: ROUTES.HOW_IT_WORKS,
+  });
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState('01');
   const [customPrompt, setCustomPrompt] = useState(
@@ -168,7 +173,7 @@ export function HowItWorksPage() {
             <div className="inline-flex items-center space-x-2 font-mono text-xs text-[#F4C13D]">
               <span className="w-2.5 h-2.5 bg-[#F06522] inline-block" />
               <span className="uppercase tracking-widest font-bold">
-                SYSTEM SPECIFICATION // PIPELINE GUIDE
+                BEGINNER OPEN SOURCE CONTRIBUTION GUIDE
               </span>
             </div>
 
@@ -178,7 +183,7 @@ export function HowItWorksPage() {
             </h1>
 
             <p className="font-mono text-xs sm:text-sm text-[#A7A29A] leading-relaxed max-w-2xl">
-              Finding open-source issues shouldn't require reading through hundreds of abandoned threads or deciphering stale labels. Here is how our architecture is designed to isolate relevant, structured opportunities across languages, runtimes, and repositories.
+              Learn how to contribute to open source software and make your first open source contribution with confidence. Discover how our engine helps beginners find active GitHub issues, evaluate codebases, and open successful pull requests.
             </p>
           </div>
 

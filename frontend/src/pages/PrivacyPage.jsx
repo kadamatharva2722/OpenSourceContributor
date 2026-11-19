@@ -1,9 +1,15 @@
 import React from 'react';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { ROUTES } from '../constants/routes';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Shield, Lock, Cpu, Globe, Cookie, Trash2, Mail } from 'lucide-react';
 
 export function PrivacyPage() {
-  useDocumentTitle('Privacy Policy');
+  usePageSEO({
+    title: 'Privacy Policy',
+    description:
+      'Read the OpenSourceContributor data governance policy. Learn how we handle GitHub OAuth scopes, minimal telemetry, and contributor data protection.',
+    canonicalPath: ROUTES.PRIVACY,
+  });
   return (
     <div className="flex-1 flex flex-col bg-[#0D0D0D] text-[#F1ECE2]">
       <section className="border-b border-[#2E2E2E] bg-[#141414] px-4 md:px-8 py-12">

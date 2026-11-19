@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import { Disc, Shield, Target, Code2, HeartHandshake, ArrowRight } from 'lucide-react';
 
 export function AboutPage() {
-  useDocumentTitle('About');
+  usePageSEO({
+    title: 'About OpenSourceContributor — Open Source Contribution Platform',
+    description:
+      'Learn about OpenSourceContributor, an open source contributor platform designed for project discovery, high-signal matching, and zero synthetic exercises.',
+    canonicalPath: ROUTES.ABOUT,
+  });
   return (
     <div className="flex-1 flex flex-col bg-[#0D0D0D] text-[#F1ECE2]">
       {/* 1. Page Header */}
@@ -14,13 +19,13 @@ export function AboutPage() {
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="inline-flex items-center space-x-2 px-3 py-1 bg-[#1A1A1A] border border-[#2E2E2E] text-xs font-mono text-[#F06522]">
             <Disc className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '6s' }} />
-            <span className="uppercase tracking-widest">MANIFESTO // ARCHIVAL VISION</span>
+            <span className="uppercase tracking-widest">ABOUT OPENSOURCECONTRIBUTOR // MANIFESTO</span>
           </div>
           <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl uppercase tracking-tight text-[#F1ECE2]">
             ARCHIVAL PRECISION FOR OPEN SOURCE
           </h1>
           <p className="font-mono text-base md:text-lg text-[#A7A29A] leading-relaxed">
-            Finding the right open-source contribution should be simple. We built a focused discovery platform that connects developers with meaningful, verified issues across real GitHub repositories.
+            OpenSourceContributor is an open source contribution platform built for high-signal project discovery. We connect developers with meaningful, verified issues across real GitHub repositories without synthetic tutorials or dead ends.
           </p>
         </div>
       </section>

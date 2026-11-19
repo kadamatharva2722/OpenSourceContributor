@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { ROUTES } from '../constants/routes';
+import { usePageSEO } from '../hooks/usePageSEO';
 import { Button } from '../components/ui/Button';
 import { CheckCircle2, Cookie, ShieldCheck, Info } from 'lucide-react';
 
@@ -7,7 +8,12 @@ const CONSENT_KEY = 'osc_cookie_consent';
 const PREFS_KEY = 'osc_cookie_prefs';
 
 export function CookiePreferencesPage() {
-  useDocumentTitle('Cookie Preferences');
+  usePageSEO({
+    title: 'Cookie Preferences',
+    description: 'Manage cookie preferences on OpenSourceContributor.',
+    canonicalPath: ROUTES.COOKIE_PREFERENCES,
+    noindex: true,
+  });
   const [preferences, setPreferences] = useState({
     essential: true, // always required
     offlineCache: true,
