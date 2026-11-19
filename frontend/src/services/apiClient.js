@@ -5,7 +5,7 @@
  * and automatically sends CSRF tokens on state-changing requests.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || '';
+const BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || '';
 
 export function getBaseUrl() {
   return BASE_URL;

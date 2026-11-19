@@ -72,6 +72,9 @@ public class SecurityConfig {
     @Value("${app.security.admin.github-id:0}")
     private long adminGithubId = 0;
 
+    @Value("${server.servlet.session.cookie.same-site:lax}")
+    private String cookieSameSite = "lax";
+
     public SecurityConfig(
             ObjectMapper objectMapper,
             @Value("${app.openapi.enabled:true}") boolean openApiEnabled,
@@ -98,7 +101,7 @@ public class SecurityConfig {
         csrfTokenRepository.setCookiePath("/");
         csrfTokenRepository.setHeaderName("X-XSRF-TOKEN");
         csrfTokenRepository.setCookieName("XSRF-TOKEN");
-        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.secure(cookieSecure).sameSite("Lax"));
+        csrfTokenRepository.setCookieCustomizer(cookie -> cookie.secure(cookieSecure).sameSite(cookieSameSite));
 
         ClientIpResolver ipResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver("");
 

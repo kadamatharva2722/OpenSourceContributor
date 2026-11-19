@@ -39,9 +39,18 @@ export async function getCsrfToken() {
   return await apiClient('/api/v1/auth/csrf');
 }
 
+const OAUTH_BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL ||
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD
+    ? 'https://opensourcecontributor-backend.onrender.com'
+    : getBaseUrl());
+
 /**
  * Returns the full backend GitHub OAuth2 initiation URL.
+ * In production, navigates directly to the Render backend domain where the OAuth
+ * callback is registered, ensuring the JSESSIONID authorization request cookie matches.
  */
 export function getOAuthLoginUrl() {
-  return `${getBaseUrl()}/oauth2/authorization/github`;
+  return `${OAUTH_BACKEND_URL}/oauth2/authorization/github`;
 }
