@@ -18,6 +18,8 @@ import { ExplorePage } from './pages/ExplorePage';
 const IssueDetailsPage = lazy(() => import('./pages/IssueDetailsPage').then((m) => ({ default: m.IssueDetailsPage })));
 const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage').then((m) => ({ default: m.HowItWorksPage })));
 const AboutPage = lazy(() => import('./pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const BlogPage = lazy(() => import('./pages/BlogPage').then((m) => ({ default: m.BlogPage })));
+const BlogArticlePage = lazy(() => import('./pages/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then((m) => ({ default: m.ContactPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
@@ -56,9 +58,12 @@ export function App() {
             <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
             <Route path={ROUTES.ISSUE_DETAILS} element={<IssueDetailsPage />} />
 
-            {/* Informational Pages */}
+            {/* Informational & Editorial Pages */}
             <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
             <Route path={ROUTES.ABOUT} element={<AboutPage />} />
+            <Route path={ROUTES.BLOG} element={<BlogPage />} />
+            <Route path={ROUTES.BLOG_WHY_CONTRIBUTE} element={<BlogArticlePage />} />
+            <Route path={ROUTES.BLOG_ARTICLE} element={<BlogArticlePage />} />
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
 
             {/* Auth Pages */}

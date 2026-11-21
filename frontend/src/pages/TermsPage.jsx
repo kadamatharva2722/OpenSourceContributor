@@ -1,7 +1,7 @@
 import React from 'react';
 import { ROUTES } from '../constants/routes';
 import { usePageSEO } from '../hooks/usePageSEO';
-import { FileText, ShieldAlert, Cpu, CheckCircle2, AlertTriangle, ExternalLink } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 export function TermsPage() {
   usePageSEO({
@@ -10,6 +10,7 @@ export function TermsPage() {
       'Review the OpenSourceContributor terms of service, acceptable usage guidelines, open-source community etiquette, and GitHub API dependency disclosures.',
     canonicalPath: ROUTES.TERMS,
   });
+
   return (
     <div className="flex-1 flex flex-col bg-[#0D0D0D] text-[#F1ECE2]">
       <section className="border-b border-[#2E2E2E] bg-[#141414] px-4 md:px-8 py-12">
@@ -30,69 +31,174 @@ export function TermsPage() {
       <section className="px-4 md:px-8 py-12 max-w-4xl mx-auto w-full space-y-8 font-mono text-xs text-[#D0CBC1] leading-relaxed">
         {/* Section 1 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">1. ACCEPTABLE USAGE &amp; CONTRIBUTOR ETIQUETTE</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">1. ABOUT OPENSOURCECONTRIBUTOR</h2>
           <p>
-            OpenSourceContributor is designed to connect software developers with verified open-source issues and facilitate genuine open-source contributions.
+            OpenSourceContributor is a free discovery platform built to help software developers find open-source issues across different skill levels and domains across public GitHub repositories.
           </p>
           <p>
-            Users agree not to utilize this platform for automated bot spam, scraping abuse, unsolicited commercial solicitations in GitHub issue threads, or harassment of repository maintainers. Maintainer attention is valuable; contributions should follow repository guidelines and community codes of conduct.
+            The platform provides tools to search issues by language, skill level, and domain topics, translate natural-language search requests into targeted GitHub queries, bookmark issues into a personal crate, and organize your open-source contribution workflow.
           </p>
         </div>
 
         {/* Section 2 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">2. GITHUB &amp; THIRD-PARTY SERVICE DEPENDENCIES</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">2. USER RESPONSIBILITIES</h2>
           <p>
-            All issue records, pull request data, and repository statistics are retrieved from the public GitHub REST API in accordance with GitHub's Terms of Service.
+            We expect everyone using OpenSourceContributor to engage respectfully and constructively with open-source projects and their communities.
           </p>
           <p>
-            OpenSourceContributor is an independent discovery platform and is not affiliated with, endorsed by, or sponsored by GitHub, Inc. Search availability and issue freshness are contingent upon upstream GitHub API operational status and rate limits.
+            Open-source maintainers volunteer significant time to triage issues and review pull requests. When participating in open-source projects:
           </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Treat maintainers and fellow contributors with respect, following each project's Code of Conduct.</li>
+            <li>Avoid posting spam, duplicate comments, or automated low-effort pull requests in issue threads.</li>
+            <li>Read existing discussions and repository documentation before commenting or asking for issue assignment.</li>
+            <li>Take personal responsibility for the quality, safety, and originality of any code or suggestions you contribute.</li>
+          </ul>
         </div>
 
         {/* Section 3 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">3. AI-GENERATED EXPLANATIONS &amp; LIMITATIONS</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">3. GITHUB INTEGRATION</h2>
           <p>
-            Match scores, skill inference, and issue explanations are generated using machine-learning inference (Groq/Llama).
+            OpenSourceContributor retrieves public issue records, repository metadata, label classifications, and project statistics directly from the public GitHub REST API in accordance with the <a href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service" target="_blank" rel="noopener noreferrer" className="text-[#F4C13D] underline hover:text-[#ffd666]">GitHub Terms of Service</a>.
           </p>
           <p>
-            These explanations are provided for navigational guidance and discovery assistance only. AI-generated match summaries do not constitute an official endorsement by repository maintainers and may occasionally misinterpret project architecture or complexity.
+            <strong>Independence:</strong> OpenSourceContributor is an independent project. We are not affiliated with, endorsed by, or sponsored by GitHub, Inc. or Microsoft Corporation.
+          </p>
+          <p>
+            <strong>OAuth Authentication:</strong> You can sign in using your GitHub account via OAuth. We request only read-only profile access (<code className="text-[#F4C13D]">read:user</code>) to identify your account, display your username and avatar, and maintain your saved crate and contribution tracker. We do not access your private repositories and cannot push commits or open pull requests on your behalf.
           </p>
         </div>
 
         {/* Section 4 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">4. USER RESPONSIBILITY FOR UPSTREAM VERIFICATION</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">4. AI-POWERED SEARCH</h2>
           <p>
-            Before cloning repositories, claiming tasks, or writing code, contributors are solely responsible for:
+            When you use natural-language search, OpenSourceContributor translates your query into structured GitHub search parameters using cloud inference through a language model provided by Groq Inc. Match explanations and relevance scores are generated by automated heuristics.
+          </p>
+          <p>
+            <strong>Suggestions, Not Guarantees:</strong> AI-generated search parameters, difficulty classifications (such as beginner, intermediate, or advanced), and match summaries are automated estimates provided for navigational guidance only:
           </p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Reviewing the live issue thread directly on GitHub to confirm the issue is unassigned and actively wanted.</li>
-            <li>Inspecting the destination repository's <code className="text-[#F4C13D]">CONTRIBUTING.md</code> and Code of Conduct.</li>
-            <li>Confirming the project's development workflow (e.g. branch naming, linting rules, and pull request conventions).</li>
+            <li>They do not guarantee that an issue is easy, actively mentored, or suitable for your skill level.</li>
+            <li>They do not constitute an official task assignment or endorsement from repository maintainers.</li>
+            <li>They may occasionally misinterpret project context or technical prerequisites.</li>
           </ul>
+          <p>
+            Always read the original issue thread on GitHub to understand the actual technical scope before starting work.
+          </p>
         </div>
 
         {/* Section 5 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">5. SERVICE AVAILABILITY &amp; SEARCH WINDOW LIMITS</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">5. ISSUE VERIFICATION</h2>
           <p>
-            OpenSourceContributor is provided on an "as is" and "as available" basis without warranties of uninterrupted service.
+            OpenSourceContributor helps you find potential opportunities, but contribution rules differ between repositories. You are responsible for confirming the details of an issue directly on GitHub before investing time:
           </p>
-          <p>
-            In accordance with GitHub Search API specifications, the maximum accessible search window is limited to the first 1,000 matching results per search query. We encourage using specific language, topic, and difficulty filters to narrow discovery scope.
-          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>
+              <strong>Check Current Status &amp; Instructions:</strong> Review the issue thread on GitHub to check its current status, whether it is already assigned, and any specific instructions or requirements provided by project maintainers.
+            </li>
+            <li>
+              <strong>Review Contribution Guidelines:</strong> Inspect the repository's <code className="text-[#F4C13D]">CONTRIBUTING.md</code> and <code className="text-[#F4C13D]">README.md</code> files for project setup instructions, code standards, and branch conventions.
+            </li>
+            <li>
+              <strong>Communicate Upstream:</strong> If an issue's scope or assignment status is unclear, leave a polite comment on the issue thread asking if you can work on it before opening a pull request.
+            </li>
+            <li>
+              <strong>Licenses &amp; Agreements:</strong> Check the repository's open-source license and verify whether you need to sign a Contributor License Agreement (CLA) or Developer Certificate of Origin (DCO).
+            </li>
+          </ul>
         </div>
 
         {/* Section 6 */}
         <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
-          <h2 className="font-heading text-xl text-[#F1ECE2]">6. INTELLECTUAL PROPERTY &amp; CODEBASE LICENSING</h2>
+          <h2 className="font-heading text-xl text-[#F1ECE2]">6. ACCOUNTS &amp; DATA</h2>
           <p>
-            Indexed repositories, issue titles, issue descriptions, and code snippets remain the intellectual property of their respective creators and contributors under their declared open-source licenses (such as MIT, Apache-2.0, BSD, or GPL).
+            Signing in with GitHub allows you to save issues to your personal crate, track active contributions, and customize your search preferences.
           </p>
           <p>
-            Contributors are responsible for complying with the specific license requirements and Contributor License Agreements (CLAs) of each project they contribute to.
+            <strong>Logging Out vs. Account Deletion:</strong>
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>
+              <strong>Logging Out:</strong> Ends your active browser session, clears in-memory tokens, and invalidates your session cookie. Logging out does not delete your saved issues, tracked contributions, or preferences; they remain available when you sign in again.
+            </li>
+            <li>
+              <strong>Account Deletion:</strong> You can request account deletion at any time in <a href={ROUTES.SETTINGS} className="text-[#F4C13D] underline hover:text-[#ffd666]">Settings</a> under the Danger Zone. Deleting your account removes your user profile, saved issues, contribution tracking ledger records, and preferences from the live application database. As explained in our <a href={ROUTES.PRIVACY} className="text-[#F4C13D] underline hover:text-[#ffd666]">Privacy Policy</a>, contact form submissions, server access logs, and disaster-recovery database backups may be retained temporarily according to operational retention schedules and legal obligations before being rotated or expired.
+            </li>
+          </ul>
+          <p>
+            For full details on data retention, backups, and privacy rights, see our <a href={ROUTES.PRIVACY} className="text-[#F4C13D] underline hover:text-[#ffd666]">Privacy Policy</a>.
+          </p>
+        </div>
+
+        {/* Section 7 */}
+        <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
+          <h2 className="font-heading text-xl text-[#F1ECE2]">7. PLATFORM USAGE RULES</h2>
+          <p>
+            To keep OpenSourceContributor fast, secure, and reliable for all developers, users must follow these rules:
+          </p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Do not use automated bots, scrapers, or scripts to bulk-extract data or bypass the user interface.</li>
+            <li>Do not attempt to bypass security controls, CSRF protections, client rate limits, or daily search quotas.</li>
+            <li>Do not attempt unauthorized access to backend servers, probe endpoints, or exploit security vulnerabilities.</li>
+            <li>Do not launch denial-of-service (DoS) attacks, flood requests, or place unreasonable loads on infrastructure.</li>
+            <li>Do not harvest maintainer contact information or email addresses for commercial marketing or spam.</li>
+            <li>Do not submit malicious, fraudulent, abusive, or defamatory messages through contact forms.</li>
+          </ul>
+          <p className="text-[11px] text-[#A7A29A]">
+            Permitted Activities: Legitimate developer exploration, standard browser navigation, good-faith security research, and normal developer interactions with public APIs are welcomed and not restricted.
+          </p>
+        </div>
+
+        {/* Section 8 */}
+        <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
+          <h2 className="font-heading text-xl text-[#F1ECE2]">8. SERVICE AVAILABILITY &amp; LIMITATIONS</h2>
+          <p>
+            OpenSourceContributor is provided as a free community resource on an "as is" and "as available" basis without guarantees of uninterrupted uptime or error-free operation.
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>
+              <strong>Search Window Limits:</strong> GitHub's Search REST API caps accessible search results to a maximum of 1,000 items per query. Searches cannot display results beyond this ceiling.
+            </li>
+            <li>
+              <strong>Data Freshness &amp; Caching:</strong> We cache issue and repository metadata temporarily to keep searches fast and respect GitHub rate limits. Because upstream repositories update constantly, issue states, labels, or assignments may occasionally lag live GitHub status.
+            </li>
+            <li>
+              <strong>Third-Party Dependencies:</strong> Service availability depends on third-party infrastructure providers including GitHub, Groq, Vercel, Render, and Neon. Outages, rate limits, or maintenance by these providers may temporarily affect platform features.
+            </li>
+          </ul>
+        </div>
+
+        {/* Section 9 */}
+        <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
+          <h2 className="font-heading text-xl text-[#F1ECE2]">9. INTELLECTUAL PROPERTY</h2>
+          <p>
+            OpenSourceContributor respects the intellectual property rights of software authors, maintainers, and community members:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>
+              <strong>Third-Party Repository Content:</strong> All repository code, documentation, issue discussions, trademarks, and project logos belong to their respective copyright holders and are governed by their declared open-source licenses.
+            </li>
+            <li>
+              <strong>Platform Code &amp; Branding:</strong> OpenSourceContributor platform source code is hosted in the project repository and is made available under applicable repository terms and licenses. Platform branding, names, logos, and custom interface designs belong to the project creators and operators. Third-party libraries and frameworks used by the platform remain the intellectual property of their respective creators under their respective open-source licenses.
+            </li>
+            <li>
+              <strong>Your Contributions:</strong> You retain ownership of any code or content you create. You are responsible for ensuring that contributions you submit to external repositories comply with their licensing terms and contribution policies.
+            </li>
+          </ul>
+        </div>
+
+        {/* Section 10 */}
+        <div className="border border-[#2E2E2E] bg-[#141414] p-6 space-y-3">
+          <h2 className="font-heading text-xl text-[#F1ECE2]">10. CONTACT &amp; UPDATES</h2>
+          <p>
+            <strong>Contacting Us:</strong> If you have questions or feedback regarding these Terms or the platform, you can reach out through our official <a href={ROUTES.CONTACT} className="text-[#F4C13D] underline hover:text-[#ffd666]">Contact Page</a>.
+          </p>
+          <p>
+            <strong>Changes to These Terms:</strong> We may update these Terms from time to time to reflect platform improvements, operational changes, or legal requirements. When changes are made, the revised version will be published on this page with an updated effective date.
           </p>
         </div>
       </section>

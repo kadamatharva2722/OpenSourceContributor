@@ -31,7 +31,8 @@ function setCanonical(url) {
 /**
  * Custom hook for dynamic page-level SEO metadata management in React SPA.
  * Synchronizes document.title, meta description, canonical link,
- * Open Graph, and Twitter metadata during client-side rendering.
+ * Open Graph, Twitter metadata, and structured data (JSON-LD) during client-side rendering.
+ * Guarantees that structured data scripts are cleanly cleaned up on route transition.
  *
  * @param {Object} params
  * @param {string} params.title - Page-specific title or subtitle
@@ -39,6 +40,7 @@ function setCanonical(url) {
  * @param {string} [params.canonicalPath] - Route path (e.g. '/explore')
  * @param {string} [params.ogType='website'] - Open Graph type
  * @param {boolean} [params.noindex=false] - Whether to apply robots noindex
+ * @param {Object} [params.jsonLd=null] - Optional JSON-LD structured data object
  */
 export function usePageSEO({
   title,
@@ -46,6 +48,7 @@ export function usePageSEO({
   canonicalPath = '',
   ogType = 'website',
   noindex = false,
+  jsonLd = null,
 }) {
   useEffect(() => {
     // 1. Format and set Title
@@ -80,6 +83,20 @@ export function usePageSEO({
       setMetaTag('name', 'robots', 'noindex, follow');
     }
 
+    // 7. Structured Data (JSON-LD) Handling with strict stale-tag prevention
+    const existingScript = document.querySelector('script[data-schema="page-jsonld"]');
+    if (jsonLd) {
+      const script = existingScript || document.createElement('script');
+      if (!existingScript) {
+        script.setAttribute('type', 'application/ld+json');
+        script.setAttribute('data-schema', 'page-jsonld');
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(jsonLd);
+    } else if (existingScript) {
+      existingScript.remove();
+    }
+
     return () => {
       // Restore default homepage metadata on unmount
       document.title = DEFAULT_DOCUMENT_TITLE;
@@ -100,6 +117,12 @@ export function usePageSEO({
           robotsMeta.remove();
         }
       }
+
+      // Clean up structured data to prevent stale schemas on succeeding routes
+      const schemaScript = document.querySelector('script[data-schema="page-jsonld"]');
+      if (schemaScript) {
+        schemaScript.remove();
+      }
     };
-  }, [title, description, canonicalPath, ogType, noindex]);
+  }, [title, description, canonicalPath, ogType, noindex, jsonLd]);
 }
